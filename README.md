@@ -21,5 +21,5 @@ Comunidade de Ituiutaba-MG.
 ## Equipe
 - Dayane Alves
 - Gustavo Bonifácio
-- Hágata Simão
+- Hágata Simião
 - Michael Julian
