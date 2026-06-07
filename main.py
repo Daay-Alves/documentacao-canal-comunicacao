@@ -4,7 +4,8 @@ import telebot
 # Insira aqui o ID do seu grupo ou o @ do seu canal público
 ID_CANAL = "@ExemploPIE"
 CHAVE_API = "8285282045:AAHa7PSI0UmX5AJz-bIO40GHsMkV2HjcKBc"
-search_strings = ['suspeita', 'invadindo', 'roubo' , 'Roubo' ,'ROUBO' , 'roubando', 'roubado']
+search_strings = ['suspeita', 'invadindo', 'roubo' , 'Roubo' ,'ROUBO' , 'roubando', 'roubado','fogo' , 'incendio' 'roubo' ,'roubando' , 'roubado' , 'assalto', 'invadindo' ,'invasao' , 'arrombamento',
+                 'suspeito' , 'suspeita' , 'rondando','fogo' , 'incendio','acidente' ,'batida']
 bot = telebot.TeleBot(CHAVE_API)
 Contatos = {}
 
@@ -54,31 +55,44 @@ def filtrar_string(msg_ctt):
 
 #Funcao para escolher o tipo de ocorrencia com base na mensagem filtrada
 def enviar_alerta(msg_ctt,message):
-    for i in filtrar_string(msg_ctt):
+    palavras_encontradas = filtrar_string(msg_ctt)
+    if not palavras_encontradas:
+        bot.reply_to(
+            message,
+            "⚠️ Não consegui entender sua mensagem. Tente utilizar termos mais claros como: Roubo, Invasão, Furto, Vandalismo, Fogo..."
+        )
+        print("Nenhuma palavra-chave localizada.")
+        return
+
+
+
+    for i in palavras_encontradas:
+
+
         match i:
-            case 'roubo' | 'Roubo' | 'ROUBO' | 'roubando' | 'roubado':
-                print("Suspeita roubo")
-                try:
+            case 'roubo' | 'roubando' | 'roubado' | 'assalto':
+                tipo_alerta = "🚨 SUSPEITA DE ROUBO"
+            case 'invadindo' | 'invasao' | 'arrombamento':
+                tipo_alerta = "🧱 SUSPEITA DE INVASÃO"
+            case 'suspeito' | 'suspeita' | 'rondando':
+                tipo_alerta = "👀 ATIVIDADE SUSPEITA"
+            case 'fogo' | 'incendio':
+                tipo_alerta = "🔥 ALERTA DE INCÊNDIO"
+            case 'acidente' | 'batida':
+                tipo_alerta = "🚗 ACIDENTE DE TRÂNSITO"
+            case _:  # O underline (_) funciona como um "default" para qualquer outra palavra da lista
+                tipo_alerta = f"⚠️ ALERTA GERAL ({i.upper()})"
 
-                    bot.send_message(ID_CANAL, (
-                                "Suspeita de roubo no endereço: " + Contatos[message.from_user.id].get("Adress") + " Descrição do relato: " + msg_ctt))
+        try:
+            endereco = Contatos[message.from_user.id].get("Adress", "Endereço não informado")
+            mensagem_final = f"{tipo_alerta}\n📍 Endereço: {endereco}\n📝 Relato: {msg_ctt}"
 
-                    bot.reply_to(
-                        message, "🚀 Sua mensagem foi enviada para o grupo com sucesso!"
-                    )
+            bot.send_message(ID_CANAL, mensagem_final)
+            bot.reply_to(message, "🚀 Sua mensagem foi enviada para o canal de alertas com sucesso!")
 
-                except Exception as e:
-                    bot.reply_to(
-                        message,
-                        "⚠️ Não consegui enviar sua mensagem para o grupo. Verifique as configurações.",
-                    )
-                    print(f"Erro detalhado: {e}")
-            case -1:
-                bot.reply_to(
-                    message,
-                    "⚠️ Não consegui entender sua mensagem, tente utilizar termos mais claros sobre o relato. Como por exemplo: Roubo, Invasão, Furto, Vandalismo...",
-                )
-                print("Nao foi localizada nenhuma palavra chave")
+        except Exception as e:
+            bot.reply_to(message, "⚠️ Não consegui enviar sua mensagem para o grupo. Verifique as configurações.")
+            print(f"Erro detalhado: {e}")
 
 # Esse gatilho captura QUALQUER mensagem de texto enviada para o bot
 @bot.message_handler(func=lambda message: True)
